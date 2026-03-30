@@ -174,7 +174,8 @@ class ImageProcessorUI:
     def __init__(self, root):
         self.root = root
         self.root.title("图片处理工具")
-        self.root.geometry("750x700")
+        self.root.geometry("820x680")
+        self.root.minsize(700, 550)
 
         # 输出文件夹路径
         self.output_folder = tk.StringVar(value="D:/code/image/result/")
@@ -197,144 +198,161 @@ class ImageProcessorUI:
         self.create_widgets()
 
     def create_widgets(self):
+        # 主容器 - 使用 grid 布局
+        main_container = tk.Frame(self.root)
+        main_container.pack(fill="both", expand=True, padx=12, pady=12)
+
         # 标题
-        title_label = tk.Label(self.root, text="图片处理工具", font=("Arial", 16, "bold"))
-        title_label.pack(pady=10)
+        title_label = tk.Label(main_container, text="图片处理工具", font=("Microsoft YaHei", 13, "bold"))
+        title_label.grid(row=0, column=0, columnspan=2, pady=(0, 8), sticky="w")
 
-        # 文件夹选择区域
-        folder_frame = tk.LabelFrame(self.root, text="输入文件夹 (支持多选)", font=("Arial", 10))
-        folder_frame.pack(pady=10, padx=20, fill="both", expand=True)
+        # 左侧面板 - 配置区域
+        left_panel = tk.Frame(main_container)
+        left_panel.grid(row=1, column=0, sticky="nsew", padx=(0, 8))
 
-        # 列表框显示已选文件夹
-        listbox_frame = tk.Frame(folder_frame)
-        listbox_frame.pack(side="top", fill="both", expand=True, padx=5, pady=5)
+        # 右侧面板 - 文件夹列表和日志
+        right_panel = tk.Frame(main_container)
+        right_panel.grid(row=1, column=1, sticky="nsew")
 
-        scrollbar = tk.Scrollbar(listbox_frame)
-        scrollbar.pack(side="right", fill="y")
+        # 配置 grid 权重
+        main_container.columnconfigure(1, weight=1)
+        main_container.rowconfigure(1, weight=1)
 
-        self.folder_listbox = tk.Listbox(
-            listbox_frame,
-            font=("Courier New", 9),
-            yscrollcommand=scrollbar.set,
-            selectmode=tk.MULTIPLE,
-            height=10
-        )
-        self.folder_listbox.pack(side="left", fill="both", expand=True)
-        scrollbar.config(command=self.folder_listbox.yview)
-
-        # 按钮区域
-        btn_frame = tk.Frame(folder_frame)
-        btn_frame.pack(fill="x", padx=5, pady=5)
-
-        btn_add = tk.Button(
-            btn_frame,
-            text="添加文件夹",
-            command=self.add_folder,
-            bg="#2196F3",
-            fg="white",
-            font=("Arial", 10),
-            width=12
-        )
-        btn_add.pack(side="left", padx=5)
-
-        btn_remove = tk.Button(
-            btn_frame,
-            text="移除选中",
-            command=self.remove_folder,
-            bg="#f44336",
-            fg="white",
-            font=("Arial", 10),
-            width=12
-        )
-        btn_remove.pack(side="left", padx=5)
-
-        btn_clear = tk.Button(
-            btn_frame,
-            text="清空全部",
-            command=self.clear_folders,
-            bg="#FF9800",
-            fg="white",
-            font=("Arial", 10),
-            width=12
-        )
-        btn_clear.pack(side="left", padx=5)
+        # ============ 左侧面板 ============
+        row_idx = 0
 
         # 去除背景配置区域
-        bg_frame = tk.LabelFrame(self.root, text="去除背景配置 (HSV颜色空间)", font=("Arial", 10))
-        bg_frame.pack(pady=10, padx=20, fill="x")
+        bg_frame = tk.LabelFrame(left_panel, text=" 去除背景配置 (HSV) ", font=("Microsoft YaHei", 9))
+        bg_frame.grid(row=row_idx, column=0, sticky="ew", pady=(0, 8))
+        row_idx += 1
 
         # 启用去除背景复选框
         enable_cb = tk.Checkbutton(
             bg_frame,
             text="启用去除背景",
             variable=self.enable_remove_bg,
-            font=("Arial", 10)
+            font=("Microsoft YaHei", 9)
         )
-        enable_cb.pack(anchor="w", padx=5, pady=5)
+        enable_cb.pack(anchor="w", padx=8, pady=(6, 6))
 
-        # HSV 颜色范围配置
-        hsv_frame = tk.Frame(bg_frame)
-        hsv_frame.pack(fill="x", padx=5, pady=5)
+        # HSV 颜色范围配置 - 使用 grid 布局更紧凑
+        hsv_inner = tk.Frame(bg_frame)
+        hsv_inner.pack(fill="x", padx=8, pady=(0, 8))
+
+        # 表头
+        tk.Label(hsv_inner, text="", width=7).grid(row=0, column=0)
+        tk.Label(hsv_inner, text="H", font=("Microsoft YaHei", 8, "bold"), width=4).grid(row=0, column=1)
+        tk.Label(hsv_inner, text="S", font=("Microsoft YaHei", 8, "bold"), width=4).grid(row=0, column=2)
+        tk.Label(hsv_inner, text="V", font=("Microsoft YaHei", 8, "bold"), width=4).grid(row=0, column=3)
 
         # Lower Color
-        lower_frame = tk.Frame(hsv_frame)
-        lower_frame.pack(side="left", padx=10)
-
-        tk.Label(lower_frame, text="Lower Color:", font=("Arial", 9, "bold")).pack()
-        tk.Label(lower_frame, text="H:").pack()
-        tk.Entry(lower_frame, textvariable=self.lower_color_h, width=5).pack()
-        tk.Label(lower_frame, text="S:").pack()
-        tk.Entry(lower_frame, textvariable=self.lower_color_s, width=5).pack()
-        tk.Label(lower_frame, text="V:").pack()
-        tk.Entry(lower_frame, textvariable=self.lower_color_v, width=5).pack()
+        tk.Label(hsv_inner, text="Lower:", font=("Microsoft YaHei", 9)).grid(row=1, column=0, sticky="w", pady=2)
+        tk.Entry(hsv_inner, textvariable=self.lower_color_h, width=4, justify="center").grid(row=1, column=1, padx=1)
+        tk.Entry(hsv_inner, textvariable=self.lower_color_s, width=4, justify="center").grid(row=1, column=2, padx=1)
+        tk.Entry(hsv_inner, textvariable=self.lower_color_v, width=4, justify="center").grid(row=1, column=3, padx=1)
 
         # Upper Color
-        upper_frame = tk.Frame(hsv_frame)
-        upper_frame.pack(side="left", padx=10)
+        tk.Label(hsv_inner, text="Upper:", font=("Microsoft YaHei", 9)).grid(row=2, column=0, sticky="w", pady=2)
+        tk.Entry(hsv_inner, textvariable=self.upper_color_h, width=4, justify="center").grid(row=2, column=1, padx=1)
+        tk.Entry(hsv_inner, textvariable=self.upper_color_s, width=4, justify="center").grid(row=2, column=2, padx=1)
+        tk.Entry(hsv_inner, textvariable=self.upper_color_v, width=4, justify="center").grid(row=2, column=3, padx=1)
 
-        tk.Label(upper_frame, text="Upper Color:", font=("Arial", 9, "bold")).pack()
-        tk.Label(upper_frame, text="H:").pack()
-        tk.Entry(upper_frame, textvariable=self.upper_color_h, width=5).pack()
-        tk.Label(upper_frame, text="S:").pack()
-        tk.Entry(upper_frame, textvariable=self.upper_color_s, width=5).pack()
-        tk.Label(upper_frame, text="V:").pack()
-        tk.Entry(upper_frame, textvariable=self.upper_color_v, width=5).pack()
+        # 输出文件夹配置
+        output_frame = tk.LabelFrame(left_panel, text=" 输出设置 ", font=("Microsoft YaHei", 9))
+        output_frame.grid(row=row_idx, column=0, sticky="ew", pady=(0, 8))
+        row_idx += 1
 
-        # 输出文件夹配置和开始处理按钮
-        output_config_frame = tk.Frame(self.root)
-        output_config_frame.pack(pady=10, padx=20, fill="x")
+        output_label = tk.Label(output_frame, text="输出文件夹:", font=("Microsoft YaHei", 9))
+        output_label.pack(anchor="w", padx=8, pady=(7, 2))
 
-        output_label = tk.Label(output_config_frame, text="输出文件夹:", font=("Arial", 10))
-        output_label.pack(side="left")
+        output_entry_frame = tk.Frame(output_frame)
+        output_entry_frame.pack(fill="x", padx=8, pady=(0, 6))
 
-        output_entry = tk.Entry(output_config_frame, textvariable=self.output_folder, width=50, font=("Courier New", 9))
-        output_entry.pack(side="left", padx=5)
+        output_entry = tk.Entry(output_entry_frame, textvariable=self.output_folder, font=("Microsoft YaHei", 9))
+        output_entry.pack(side="left", fill="x", expand=True)
 
         btn_browse = tk.Button(
-            output_config_frame,
-            text="浏览...",
+            output_entry_frame,
+            text="浏览",
             command=self.browse_output_folder,
-            width=8
+            width=5,
+            font=("Microsoft YaHei", 8)
         )
-        btn_browse.pack(side="left", padx=5)
+        btn_browse.pack(side="left", padx=(4, 0))
+
+        # 操作按钮区域
+        action_frame = tk.Frame(left_panel)
+        action_frame.grid(row=row_idx, column=0, sticky="ew", pady=(0, 8))
+        row_idx += 1
 
         self.btn_process = tk.Button(
-            output_config_frame,
+            action_frame,
             text="开始处理",
             command=self.process_images,
             bg="#4CAF50",
             fg="white",
-            font=("Arial", 11, "bold"),
-            width=12
+            font=("Microsoft YaHei", 10, "bold"),
+            height=2,
+            cursor="hand2",
+            relief="flat"
         )
-        self.btn_process.pack(side="left", padx=5)
+        self.btn_process.pack(fill="x")
+
+        # ============ 右侧面板 ============
+        right_row = 0
+
+        # 文件夹选择区域
+        folder_frame = tk.LabelFrame(right_panel, text=" 输入文件夹 (支持多选) ", font=("Microsoft YaHei", 9))
+        folder_frame.grid(row=right_row, column=0, sticky="nsew", pady=(0, 8))
+        right_row += 1
+
+        right_panel.rowconfigure(right_row - 1, weight=1)
+        right_panel.columnconfigure(0, weight=1)
+
+        # 列表框容器
+        listbox_container = tk.Frame(folder_frame)
+        listbox_container.pack(fill="both", expand=True, padx=6, pady=(4, 6))
+
+        scrollbar = tk.Scrollbar(listbox_container)
+        scrollbar.pack(side="right", fill="y")
+
+        self.folder_listbox = tk.Listbox(
+            listbox_container,
+            font=("Microsoft YaHei", 9),
+            yscrollcommand=scrollbar.set,
+            selectmode=tk.MULTIPLE
+        )
+        self.folder_listbox.pack(side="left", fill="both", expand=True)
+        scrollbar.config(command=self.folder_listbox.yview)
+
+        # 按钮区域
+        btn_frame = tk.Frame(folder_frame)
+        btn_frame.pack(fill="x", padx=6, pady=(0, 6))
+
+        btn_style = {"font": ("Microsoft YaHei", 9), "cursor": "hand2", "relief": "flat"}
+
+        btn_add = tk.Button(btn_frame, text="添加文件夹", command=self.add_folder, bg="#2196F3", fg="white", **btn_style)
+        btn_add.pack(side="left", fill="x", expand=True, padx=(0, 2))
+
+        btn_remove = tk.Button(btn_frame, text="移除选中", command=self.remove_folder, bg="#f44336", fg="white", **btn_style)
+        btn_remove.pack(side="left", fill="x", expand=True, padx=2)
+
+        btn_clear = tk.Button(btn_frame, text="清空全部", command=self.clear_folders, bg="#FF9800", fg="white", **btn_style)
+        btn_clear.pack(side="left", fill="x", expand=True, padx=(2, 0))
 
         # 输出日志区域
-        log_label = tk.Label(self.root, text="输出日志:", font=("Arial", 10))
-        log_label.pack(pady=(5, 2), anchor="w", padx=20)
+        log_frame = tk.LabelFrame(right_panel, text=" 输出日志 ", font=("Microsoft YaHei", 9))
+        log_frame.grid(row=right_row, column=0, sticky="nsew")
+        right_row += 1
 
-        self.text_output = scrolledtext.ScrolledText(self.root, width=85, height=12, font=("Courier New", 9))
-        self.text_output.pack(pady=5, padx=20)
+        right_panel.rowconfigure(right_row - 1, weight=1)
+
+        self.text_output = scrolledtext.ScrolledText(
+            log_frame,
+            font=("Microsoft YaHei", 9),
+            wrap="word"
+        )
+        self.text_output.pack(fill="both", expand=True, padx=4, pady=4)
 
     def add_folder(self):
         folders = select_folders_multi(title="选择文件夹")
